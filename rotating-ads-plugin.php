@@ -237,8 +237,9 @@ class RAD_Ad_Rotator {
         self::process_ad_logic();
 
         // If an ad script has been selected by process_ad_logic(), hook its injection into wp_head.
+        // Priority 1 ensures it fires early in the head.
         if (self::$ad_script_to_show) {
-            add_action('wp_head', ['RAD_Ad_Rotator', 'inject_ad_script']);
+            add_action('wp_head', ['RAD_Ad_Rotator', 'inject_ad_script'], 1);
         }
     }
 
@@ -460,9 +461,13 @@ add_action('wp_loaded', ['RAD_Ad_Rotator', 'init']);
  *      - After the last ad ("Ad 3") has shown for its 3rd view:
  *      - Page X Visit: Navigate/Refresh.
  *        - Expected: No new ad script messages appear in the console. The session is "exhausted" for ads.
- *   d. Verify Script Injection:
- *      - On a page where an ad is expected, view page source (Ctrl+U or Right-click > View Page Source).
- *      - Expected: The ad script (e.g., <script>console.log(...);</script>) should be present in the <head> section, wrapped with "<!-- Rotating Ads Deluxe Script Start -->" and "<!-- Rotating Ads Deluxe Script End -->".
+ *   d. Verify Script Injection & Placement:
+ *      - On a page where an ad is expected (e.g., "Ad 1 - View 1 from session" is in the console):
+ *      - View page source (Ctrl+U or Right-click > View Page Source).
+ *      - Search for `<!-- Rotating Ads Deluxe Script Start -->`.
+ *      - Expected:
+ *          - The comment and the subsequent ad script (e.g., `<script>console.log('Ad 1 - View 1 from session');</script>`) are found.
+ *          - This entire block (comment + script + end comment) is located *within* the `<head>...</head>` section of the HTML, not in the `<body>`.
  *
  * ---
  * 3. Daily Reset Functionality:
